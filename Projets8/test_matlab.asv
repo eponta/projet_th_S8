@@ -15,11 +15,11 @@ n=128; %nombre de sous porteuses
 l=16;%taille du préfixe cyclique
 
 % Bruit
-sigma = 0.0001;
+sigma = 0.001;
 moyenne = 0;
 bruit_r = moyenne + sigma*randn(1,Ns+l*(Ns/n));
 bruit_i = moyenne + sigma*randn(1,Ns+l*(Ns/n));
-Err = 0.001;
+Err = 0.01;
 
 
 %% Emission
@@ -73,8 +73,8 @@ for i = 1:length(spc_b)-n-l+1;
     
     if abs(sum(test)) < Err
          A(cpt_mat, :) = buffer(17:n+l);
-         prefixes_detect(cpt_mat,:)=buffer(1:l);
          cpt_mat = cpt_mat + 1;
+         prefixes_detect(cpt_mat,:)=buffer(
     end;
 end;
 
