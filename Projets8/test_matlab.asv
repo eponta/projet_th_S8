@@ -8,18 +8,18 @@ clc
 
 fe=10000;
 Ts=0.001;
-Ns=128*3;
+Ns=128*10;
 Nfft=512;
 xaxisf=-(fe/2):fe/Nfft:(fe/2)-(fe/Nfft);
 n=128; %nombre de sous porteuses
-l=16;%taille du préfixe cyclique
+l=32;%taille du préfixe cyclique
 
 % Bruit
-sigma = 0.001;
+sigma2 = 0.001;
 moyenne = 0;
-bruit_r = moyenne + sigma*randn(1,Ns+l*(Ns/n));
-bruit_i = moyenne + sigma*randn(1,Ns+l*(Ns/n));
-Err = 0.01;
+bruit_r = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n));
+bruit_i = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n));
+Err = 0.5;
 
 
 %% Emission
@@ -33,19 +33,19 @@ ss= x*2-1;
 
 
 for k=1:(Ns/n)
-    ssp((k-1)*n+1:(k-1)*n+n)=ifft(ss((k-1)*n+1:(k-1)*n+n));
+    ssp((k-1)*n+1:(k-1)*n+n)=sqrt(n)*ifft(ss((k-1)*n+1:(k-1)*n+n));
 end;
 
 %prefixe cyclique
 
-spc=[ssp(n-15:n),ssp];
+spc=[ssp(n-l+1:n),ssp];
 cpt=2;
 prefixes = zeros(length(ssp)/n, l);
-prefixes(1,:)=ssp(n-15:n);
+prefixes(1,:)=ssp(n-l+1:n);
 for j = 2:(length(ssp)/n);
-    temp = ssp(j*n-15:j*n);
-    spc_temp = [spc(1:(j-1)*n+(j-1)*16), temp];
-    spc = [spc_temp , spc((j-1)*n+(j-1)*16+1:end)];
+    temp = ssp(j*n-l+1:j*n);
+    spc_temp = [spc(1:(j-1)*n+(j-1)*l), temp];
+    spc = [spc_temp , spc((j-1)*n+(j-1)*l+1:end)];
     prefixes(cpt,:)=temp;
     cpt=cpt+1;
     
@@ -58,59 +58,78 @@ end;
 
 %Bruit
 
-spc_b = spc + bruit_r + i*bruit_i;
+spc_b = spc + bruit_r + 1i*bruit_i;
 
 %% Réception
 
 %Detection prefixe
 A = zeros(length(ssp)/n, n);
 cpt_mat = 1;
+cpt_max=1;
+test_pic=0;
+cpt_pos_max=1;
 prefixes_detect =zeros(length(ssp)/n, l);
 for i = 1:length(spc_b)-n-l+1;
   
     buffer = spc_b(i:i+n+l-1);
-    test = (buffer(1:l)-buffer(n+1:n+l));
+    test = (buffer(1:l)*buffer(n+1:n+l)');
     
-    if abs(sum(test)) < Err
-         A(cpt_mat, :) = buffer(17:n+l);
-         cpt_mat = cpt_mat + 1;
-         prefixes_detect(cpt_mat,:)=buffer(
-    end;
+    epsilon = abs(test)/(l*var(buffer,1));
+    eps(i) = epsilon;
+   
 end;
 
+eps(length(spc_b)-n+1
+ for j = 1:length(eps)
+        if eps(j) > Err
+            test_pic=1;
+            buff_max(cpt_max)=eps(j);
+            buff_indice(cpt_max)=j;
+            cpt_max=cpt_max+1;
+        elseif eps(j) < 0.3 && test_pic==1
+            test_pic=0;
+            cpt_max=1;
+            M = max(buff_max);
+            for k=1:length(buff_max)
+                if buff_max(k)==M
+                    pos_max(cpt_pos_max)=buff_indice(k);;
+                    cpt_pos_max=cpt_pos_max+1;
+                end
+            end
+            buff_max=[];
+            buff_indice=[];
+        end
+ end
+ 
+ 
+ 
+plot(eps)
 
-% for i = 1:length(spc) - n - l + 1;
-%   
-%     cpt = 0;
-%     buffer = spc(i:i+n+l-1);
-%     for i1 = 1:16
-%        if abs(buffer(i1) -  buffer(i1 + n)) < Err%bruit!
-%           cpt = cpt + 1; 
-%       end
-% 
-%     if cpt == 16
-%         A(cpt_mat, :) = buffer(17:n+l);
-%         cpt_mat = cpt_mat + 1;
-%         cpt = 0;
-%     end
-%     end;
-% end
+for i = 1:length(pos_max) 
+  
+    cpt = 0;
+    buffer = spc_b(pos_max(i)+l:pos_max(i)+n+l-1);
+    
+    A(cpt_mat, :) = buffer;
+    cpt_mat = cpt_mat + 1;
+    
+end
 
 %FFT
 
-B = ((fft(A.')));
+B1 = ((fft(A.')));
 
 
 %P -> S
 
-B=B(:);
-B=B';
+B1=B1(:);
+B1=B1';
 
 
 %Symbole -> bits
 
-B(B >= 0) = 1;
-B(B < 0) = -1;
+B(B1 >= 0) = 1;
+B(B1 < 0) = -1;
 
 B=(B+1)/2;
 
