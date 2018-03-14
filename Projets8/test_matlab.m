@@ -16,11 +16,11 @@ N=10;
 Ns=n*N;
 
 % Bruit
-sigma2 = 0.0000;
+sigma2 = 0.00001;
 moyenne = 0;
 bruit_r = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n));
 bruit_i = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n));
-Err = 0.5;
+Err = 9;
 
 
 %% Emission
@@ -76,13 +76,16 @@ cpt_mat = 1;
 cpt_max=1;
 test_pic=0;
 cpt_pos_max=1;
+
 %prefixes_detect =zeros(length(ssp)/n, l);
 for i = 1:length(spc_b)-n-l+1;
-  
+    sum=0;
     buffer = spc_b(i:i+n+l-1);
     test = (buffer(1:l)*buffer(n+1:n+l)');
-    
-    epsilon = abs(test)^2/(l*var(buffer,1))^2;
+    for k=0:l-1
+       sum=sum+ abs(buffer(n+k+1))^2;
+    end
+    epsilon = abs(test)^2/sum;%(l*var(buffer,1))^2;
     eps(i) = epsilon;
    
 end;
@@ -144,7 +147,7 @@ B(B1 < 0) = -1;
 
 B=(B+1)/2;
 figure
-stem(B-x)
+%stem(B-x)
 
 %TEB
 
