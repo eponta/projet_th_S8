@@ -16,11 +16,11 @@ N=10;
 Ns=n*N;
 
 % Bruit
-sigma2 = 0.00001;
+sigma2 = 0.1;
 moyenne = 0;
 bruit_r = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n));
 bruit_i = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n));
-Err = 9;
+Err = 0.65;
 
 
 %% Emission
@@ -45,6 +45,7 @@ prefixes = zeros(length(ssp)/n, l);
 prefixes(1,:)=ssp(n-l+1:n);
 cpt_indice=2;
 indice_prefixe(1)=1;
+
 for j = 2:(length(ssp)/n);
     temp = ssp(j*n-l+1:j*n);
     spc_temp = [spc(1:(j-1)*n+(j-1)*l), temp];
@@ -62,7 +63,7 @@ end
 %P/S : pas besoin sur Matlab
 
 
-%% Canal
+1%% Canal
 
 %Bruit
 
@@ -85,9 +86,8 @@ for i = 1:length(spc_b)-n-l+1;
     for k=0:l-1
        sum=sum+ abs(buffer(n+k+1))^2;
     end
-    epsilon = abs(test)^2/sum;%(l*var(buffer,1))^2;
+    epsilon = abs(test)^2/((buffer(1:l)*buffer(1:l)')*(buffer(n+1:n+l)*buffer(n+1:n+l)'));
     eps(i) = epsilon;
-   
 end;
 
 eps(length(spc_b)-n+1)=0;
@@ -114,11 +114,27 @@ eps(length(spc_b)-n+1)=0;
  
  
 plot(eps)
+%% Correction des erreurs 
 
-for i = 1:length(pos_max) 
+for i=1:N-1
+ tab_ecart(i)=pos_max(i+1)-pos_max(i);
+end
+
+
+pos_max_corrige=pos_max;
+for i=1:N-1
+   if(tab_ecart(i) > (n+l))
+       pos_max_corrige(i)=pos_max(i)+(tab_ecart(i)-(n+l));
+   else
+       pos_max_corrige(i)=pos_max(i);
+   end
+end
+
+%% supression prefixe
+for i = 1:length(pos_max_corrige) 
   
     cpt = 0;
-    buffer = spc_b(pos_max(i)+l:pos_max(i)+n+l-1);
+    buffer = spc_b(pos_max_corrige(i)+l:pos_max_corrige(i)+n+l-1);
     
     A(cpt_mat, :) = buffer;
     cpt_mat = cpt_mat + 1;
@@ -129,7 +145,8 @@ hold all
 stem(pos_max,eps(pos_max));
 stem(indice_prefixe,eps(indice_prefixe),'x');
 
-%FFT
+
+%% FFT
 
 B1 = (sqrt(n)./(fft(A.')));
 
@@ -140,16 +157,16 @@ B1=B1(:);
 B1=B1';
 
 
-%Symbole -> bits
+%% Symbole -> bits
 
 B(B1 >= 0) = 1;
 B(B1 < 0) = -1;
 
 B=(B+1)/2;
-figure
-%stem(B-x)
+% figure
+% stem(B-x)
 
-%TEB
+%% TEB
 
 cpt_teb =0;
 cpt_err=1;
