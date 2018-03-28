@@ -161,10 +161,8 @@ for i = 1:n_moy_offset - 1 %Il faudra faire la moyenne que sur les dernieres val
 end
 
 for i = n_moy_offset:N-1 
-    sum=0;
-    for k=0:n_moy_offset-1
-       sum = sum + offset_exp(i-k);
-    end
+    for k=1:n_moy_offset
+        sum = offset_exp(i-7) + offset_exp(i-6) + offset_exp(i-5) + offset_exp(i-4) + offset_exp(i-3) + offset_exp(i-2) + offset_exp(i-1) + offset_exp(i);
    offset_moy(i) = round(sum/n_moy_offset);
    
 end
