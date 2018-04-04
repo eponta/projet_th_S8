@@ -21,7 +21,7 @@ n_moy_offset = 10; %nb de termes pour le calcul de la moy offset
 
 % Bruit
 
-SNR = 10;
+SNR = 5;
 sigma2 = 0.01; %carré de la variance du bruit
 moyenne = 0; %offset du bruit
 bruit_r = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n)); %calcul du bruit réel
@@ -39,6 +39,30 @@ seuil_min = 0.3;
 
 x=randi(2,1,Ns)-1; %génération du signal aléatoire
 
+%% Insertion bits aleatoires connu
+
+tab_aleatoire=randi(2,1,7)-1;
+
+% for k=1:N
+%     for i=1:7
+%         x=[x(1:i*16+i-1),tab_aleatoire(i),x(i*16+i:end)];
+%     end
+% end
+
+% symbole connu
+
+test=0;
+for i=1:128
+    if(test==0)
+        symbole(i)=0;
+        test=1;
+    else
+        symbole(i)=1;
+        test=0;
+    end
+end
+
+%x=[symbole,x];
 
 %Association_bit_symbole
 
@@ -50,6 +74,7 @@ ss= x*2-1;
 for k=1:(Ns/n)
     ssp((k-1)*n+1:(k-1)*n+n)=sqrt(n)*ifft(ss((k-1)*n+1:(k-1)*n+n));
 end;
+
 
 
 %préfixe cyclique
@@ -139,8 +164,8 @@ title('Detection pic non corrige');
 
 %Régression linéaire
 
-figure;
-plot(pos_max);
+% figure;
+% plot(pos_max);
 
 %Calcul offset 
 sum = 0;
