@@ -9,20 +9,21 @@ clc
 %Paramètres globaux
 
 fe=10000; %fréquence d'échantillonnage
-Ts=0.001; %temps symbole 
-Nfft=512; 
+Ts=0.001; %temps symbole
+Nfft=512;
 xaxisf=-(fe/2):fe/Nfft:(fe/2)-(fe/Nfft);
 n=128; %nombre de sous-porteuses
 l=16;%taille du préfixe cyclique
-N=30; %nombre de trames
+N=100; %nombre de trames
+Nsync=N/10;
 Ns=n*N; %nomre de symboles total
 n_moy_offset = 10; %nb de termes pour le calcul de la moy offset*
 delta=0; %decalage de phase dans le canal
-
+H=[0.407, 0.815, 0.407]; %canal
 
 % Bruit
 
-SNR = 10;
+SNR = 1000;
 sigma2 = 0.01; %carré de la variance du bruit
 moyenne = 0; %offset du bruit
 bruit_r = moyenne + sqrt(sigma2/2)*randn(1,Ns+l*(Ns/n)); %calcul du bruit réel
@@ -62,14 +63,15 @@ end
 %% Association_bit_symbole
 
 ss= x*2-1;
-
+symbole_trames_pilote=PRBS*2-1;
 
 %S/P
 
-for k=1:(Ns+(128*N/10))/n
-    ssp((k-1)*n+1:(k-1)*n+n)=sqrt(n)*ifft(ss((k-1)*n+1:(k-1)*n+n));
-end;
+% for k=1:(Ns+(128*N/10))/n
+%     ssp((k-1)*n+1:(k-1)*n+n)=sqrt(n)*ifft(ss((k-1)*n+1:(k-1)*n+n));
+% end;
 
+ssp=SP_IFFT(ss,N,Ns,n,Nsync);
 
 
 %préfixe cyclique
@@ -106,12 +108,19 @@ end
 %% Canal
 
 
-%Bruit
 
 spc_b = cat(2, offset, spc);
-spc_c=spc_b.*exp(1i*2*pi*delta*(0:length(spc_b)-1));
+
+% canal
+% for i = 1 : N + N/10
+%     spc_c(i*(n-1)+1 : i*n) = conv(spc_c(i*(n-1)+1 : i*n), H, 'same');
+% end
+spc_c = conv(spc_b,H,'same');
+
+%Bruit
+spc_c=spc_c.*exp(1i*2*pi*delta*(0:length(spc_c)-1));
 spc_c=awgn(spc_c,SNR);
-% spc_b = spc + bruit_r + 1i*bruit_i;
+
 
 
 %% Réception
@@ -129,27 +138,27 @@ cpt_pos_max = 1;
 %Corrélation entre deux buffers espacés de n
 
 for i = 1 : length(spc_c)-n-l+1;
-%     sum = 0;
+    %     sum = 0;
     buffer = spc_c(i : i+n+l-1);
     test = (buffer(1 : l)*buffer(n+1 :n+l)');
-%     for k = 0 : l - 1
-%        sum = sum + abs(buffer(n+k+1))^2;
-%     end
+    %     for k = 0 : l - 1
+    %        sum = sum + abs(buffer(n+k+1))^2;
+    %     end
     epsilon = abs(test)^2/((buffer(1:l)*buffer(1:l)')*(buffer(n+1:n+l)*buffer(n+1:n+l)'));
     eps(i) = epsilon;
-   
+    
 end;
 
 plot(eps); %Affichage de la corrélation
 
 
-%Detection des pics 
+%Detection des pics
 
 
 for i=1:N+(N/10)-1
-   buffer=eps(1+(i-1)*(n+l):i*(n+l)); % On detecte les maxs sur des trames de 128+16 elements
-   [maxi,indice]=max(buffer);
-   pos_max(i)=indice + (i-1)*(n+l);
+    buffer=eps(1+(i-1)*(n+l):i*(n+l)); % On detecte les maxs sur des trames de 128+16 elements
+    [maxi,indice]=max(buffer);
+    pos_max(i)=indice + (i-1)*(n+l);
 end
 
 hold all %Affichage des débuts de trame
@@ -162,7 +171,7 @@ title('Detection pic non corrige');
 % figure;
 % plot(pos_max);
 
-%Calcul offset 
+%Calcul offset
 sum = 0;
 for i = 1 : N+(N/10)-1
     erreur(i) = pos_max(i) - (i-1)*(n + l);
@@ -175,18 +184,18 @@ end
 
 sum = 0;
 for i = 1:n_moy_offset - 1 %Il faudra faire la moyenne que sur les dernieres valeurs : adaptation
-   sum = sum + offset_exp(i);
-   offset_moy(i) = round(sum/i);
-   
+    sum = sum + offset_exp(i);
+    offset_moy(i) = round(sum/i);
+    
 end
 
-for i = n_moy_offset:N+(N/10)-1 
+for i = n_moy_offset:N+(N/10)-1
     sum=0;
     for k=0:n_moy_offset-1
-       sum = sum + offset_exp(i-k);
+        sum = sum + offset_exp(i-k);
     end
-   offset_moy(i) = round(sum/n_moy_offset);
-   
+    offset_moy(i) = round(sum/n_moy_offset);
+    
 end
 
 
@@ -194,7 +203,7 @@ end
 
 pos_max_corrige(1)=offset_moy(1);
 for i=1:N+(N/10)-1
-   pos_max_corrige(i+1)=offset_moy(i)+i*(l+n);
+    pos_max_corrige(i+1)=offset_moy(i)+i*(l+n);
 end
 
 figure;
@@ -206,13 +215,13 @@ title('Detection pic corrige');
 
 %Supression des préfixes cycliques (+ S -> P)
 
-for i = 1 : length(pos_max_corrige) 
-  
+for i = 1 : length(pos_max_corrige)
+    
     cpt = 0;
     buffer = spc_c(pos_max_corrige(i)+l:pos_max_corrige(i)+n+l-1);
     A(cpt_mat, :) = buffer;
-    cpt_mat = cpt_mat + 1;    
-   
+    cpt_mat = cpt_mat + 1;
+    
     
 end
 
@@ -223,7 +232,7 @@ for i = 1 : N+(N/10);
     test = (buffer*ifft(PRBS)');
     epsilon = abs(test)^2/((buffer*buffer')*(ifft(PRBS)*ifft(PRBS)'));
     eps2(i) = epsilon;
-   
+    
 end;
 
 figure;
@@ -242,34 +251,51 @@ title('Detection pic non corrige');
 %% prelevement des trames pilotes
 
 for i=1:(N/10)
-   trames_pilote(i,:)=A(pos_max_pilote(i),:); 
+    trames_pilote(i,:)=A(pos_max_pilote(i),:);
 end
 
 %% FFT
 
 B1 = (sqrt(n)./(fft(A.')));
-trames_pilote_bin = (sqrt(n)./(fft(trames_pilote.')));
+trames_pilote_bin = (fft(trames_pilote.'))./sqrt(n);
 
 
 %P -> S
 
 B1=B1(:);
 B1=B1';
-trames_pilote_bin=trames_pilote_bin';
+trames_pilote_bin=trames_pilote_bin.';
 
 
-%Symbole -> bits
+%% Coeff canal
+% for i=1:n
+%     sum=0;
+%     for j=1:(N/10)
+%         coef_canal = trames_pilote_bin(j,:)./symbole_trames_pilote;
+%         sum=sum+coef_canal(j,i);
+%     end
+%     moy_coef_canal(i)=sum/(N/10);
+% end
+
+coef_canal=zeros(1,n);
+for j=1:(N/10)
+    coef_canal = coef_canal + trames_pilote_bin(j,:)./symbole_trames_pilote;
+end
+moy_coef_canal=coef_canal/(N/10);
+
+
+%% Symbole -> bits
 
 B(B1 >= 0) = 1;
 B(B1 < 0) = -1;
 
-trames_pilote_bin(trames_pilote_bin >= 0) = 1;
-trames_pilote_bin(trames_pilote_bin < 0) = -1;
+% trames_pilote_bin(trames_pilote_bin >= 0) = 1;
+% trames_pilote_bin(trames_pilote_bin < 0) = -1;
 
 
 
 B=(B+1)/2;
-trames_pilote_bin=(trames_pilote_bin+1)/2;
+% trames_pilote_bin=(trames_pilote_bin+1)/2;
 
 % figure
 %stem(B-x)
@@ -288,11 +314,10 @@ for k = 1:Ns
 end;
 
 TEB = cpt_teb/Ns;
+%%
+figure
+plot(abs(fft(H,n)));
+hold all
+plot(abs(moy_coef_canal));
 
-% subplot(211)
-% stem(spc);
-% subplot(212)
-% stem(spc_b);
 
-
-    
