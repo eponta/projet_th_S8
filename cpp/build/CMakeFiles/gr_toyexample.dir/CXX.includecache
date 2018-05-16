@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/media/sf_projet_th_S8/cpp/main.cpp
+iostream
+-
+complex
+-
+uhd/usrp/multi_usrp.hpp
+-
+uhd/utils/msg.hpp
+-
+
