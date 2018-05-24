@@ -14,12 +14,12 @@ Nfft = 512;
 xaxisf = -(fe/2) : fe/Nfft : (fe/2)-(fe/Nfft);
 n = 128; %nombre de sous-porteuses
 l = 16;%taille du préfixe cyclique
-N = 1; %nombre de trames
+N = 20; %nombre de trames
 ISR = 10; %info/synchro ratio : 1 trame de synchro pour 10 trames d'info
 Nsync = 0%floor(N/ISR); %nombre de trames de synchro
 Ns = n*N; %nomre de symboles total
-n_moy_offset = 25; %nb de termes pour le calcul de la moy offset
-delta = 0; %decalage de phase dans le canal
+n_moy_offset = 10; %nb de termes pour le calcul de la moy offset
+delta = 20; %decalage de phase dans le canal
 
 SNR = 10;
 
@@ -28,11 +28,11 @@ silence = zeros(1, 1+n+l); %silence à ajouter au signal pour pouvoir le traiter 
 
 %% Emission
 
-message='helloworld!!!!!!';
-i_message=uint8(message);
-mat_bit_message=de2bi(i_message,8);
-sig_in=reshape(mat_bit_message',1,[]);
-%sig_in = randi(2,1,Ns)-1; %génération du signal aléatoire
+% message='helloworld!!!!!!';
+% i_message=uint8(message);
+% mat_bit_message=de2bi(i_message,8);
+% sig_in=reshape(mat_bit_message',1,[]);
+sig_in = randi(2,1,Ns)-1; %génération du signal aléatoire
 
 %GENERATION ET INSERTION DES TRAMES DE SYNCHRO
 
@@ -67,10 +67,10 @@ spc_b = cat(2, offset, spc); %ajout offset
 spc_b = cat(2, spc_b, silence); %ajout silence
 
 % AJOUT DECALAGE FREQUENTIEL
-%spc_c = spc_b.*exp(1i*2*pi*delta*(0:length(spc_b)-1)); %décalage fréquentiel
+spc_c = spc_b.*exp(1i*2*pi*delta*(0:length(spc_b)-1)); %décalage fréquentiel
 
 % AJOUT DE BRUIT
-spc_c = awgn(spc_b,SNR); %ajout de bruit
+spc_c = awgn(spc_c,SNR); %ajout de bruit
 
 % % AJOUT CONVOLUTION CANAL : "Yk = conv(Hk, Xk) + Zk;"
 % Hk = [0.407, 0.815, 0.407];

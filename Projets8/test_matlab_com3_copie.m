@@ -17,7 +17,7 @@ l=16;%taille du préfixe cyclique
 N=30; %nombre de trames
 Ns=n*N; %nomre de symboles total
 n_moy_offset = 10; %nb de termes pour le calcul de la moy offset*
-delta=0; %decalage de phase dans le canal
+delta=pi/24; %decalage de phase dans le canal
 
 
 % Bruit

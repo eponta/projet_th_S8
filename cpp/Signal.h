@@ -1,17 +1,14 @@
 //Signal.h
+#include <vector>
+#include <complex>
 using namespace std;
 
 class Signal
 {
 	public:
-		int ss[];
-		int ssp[];
-		int spc[];
-		int spc_b[];
-		int A[];
-		int B[];
-	private:
-		void Signal();
-		int _SpIfft();
+		Signal();
+		int _corrDetectMax(std::vector<std::complex<double>> spc_c,int N,int sync,int n,int l);
 
-}
+	private:
+
+};
