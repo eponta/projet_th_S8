@@ -14,9 +14,9 @@ Nfft = 512;
 xaxisf = -(fe/2) : fe/Nfft : (fe/2)-(fe/Nfft);
 n = 128; %nombre de sous-porteuses
 l = 16;%taille du préfixe cyclique
-N = 40; %nombre de trames
+N = 1; %nombre de trames
 ISR = 10; %info/synchro ratio : 1 trame de synchro pour 10 trames d'info
-Nsync = floor(N/ISR); %nombre de trames de synchro
+Nsync = 0%floor(N/ISR); %nombre de trames de synchro
 Ns = n*N; %nomre de symboles total
 n_moy_offset = 25; %nb de termes pour le calcul de la moy offset
 delta = 0; %decalage de phase dans le canal
@@ -28,7 +28,11 @@ silence = zeros(1, 1+n+l); %silence à ajouter au signal pour pouvoir le traiter 
 
 %% Emission
 
-sig_in = randi(2,1,Ns)-1; %génération du signal aléatoire
+message='helloworld!!!!!!';
+i_message=uint8(message);
+mat_bit_message=de2bi(i_message,8);
+sig_in=reshape(mat_bit_message',1,[]);
+%sig_in = randi(2,1,Ns)-1; %génération du signal aléatoire
 
 %GENERATION ET INSERTION DES TRAMES DE SYNCHRO
 

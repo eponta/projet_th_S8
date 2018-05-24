@@ -14,7 +14,7 @@ Nfft=512;
 xaxisf=-(fe/2):fe/Nfft:(fe/2)-(fe/Nfft);
 n=128; %nombre de sous-porteuses
 l=16;%taille du préfixe cyclique
-N=100; %nombre de trames
+N=1; %nombre de trames
 Nsync=N/10;
 Ns=n*N; %nomre de symboles total
 n_moy_offset = 10; %nb de termes pour le calcul de la moy offset*
@@ -39,7 +39,11 @@ seuil_min = 0.3;
 
 %% Emission
 
-x=randi(2,1,Ns)-1; %génération du signal aléatoire
+message='helloworld!!!!!!';
+i_message=uint8(message);
+mat_bit_message=de2bi(i_message,8);
+x=reshape(mat_bit_message',1,[]);
+%x=randi(2,1,Ns)-1; %génération du signal aléatoire
 
 %% Insertion bits aleatoires connu
 
