@@ -7,8 +7,7 @@ class Signal
 {
 	public:
 		Signal();
-		int _corrDetectMax(std::vector<std::complex<double>> spc_c,int N,int sync,int n,int l);
-
+		static std::vector<std::complex<double>> _corrDetectMax(std::vector<std::complex<double>> spc_c,int n,int l);
 	private:
 
 };
