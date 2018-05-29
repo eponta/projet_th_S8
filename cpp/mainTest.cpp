@@ -89,25 +89,25 @@ vector<double> calc_offset(vector<int> pos_max_pratique, int N, int Nsync, int n
 	}
 }
 
-vector<double> moyenne_offset(vector<double> offset_pratique, int N, int Nsync, int n_moy_offset)
-{
-	vector<double> offset_moy;
-	double sum =0;
-	for(int i=0;i<n_moy_offset;i++)
-	{
-		sum+=offset_pratique[i];
-		offset_moy.push_back(round(sum/n_moy_offset));
-	}
-	for(int i=n_moy_offset;i<N+Nsync)
-	{
-		sum=0;
-		for(int j=0;j<n_moy_offset-1;j++)
-		{
-			sum+=offset_pratique(i-j);
-		}
-		offset_moy.push_back(round(sum/n_moy_offset));
-	}
-}
+// vector<double> moyenne_offset(vector<double> offset_pratique, int N, int Nsync, int n_moy_offset)
+// {
+// 	vector<double> offset_moy;
+// 	double sum =0;
+// 	for(int i=0;i<n_moy_offset;i++)
+// 	{
+// 		sum+=offset_pratique[i];
+// 		offset_moy.push_back(round(sum/n_moy_offset));
+// 	}
+// 	for(int i=n_moy_offset;i<N+Nsync)
+// 	{
+// 		sum=0;
+// 		for(int j=0;j<n_moy_offset-1;j++)
+// 		{
+// 			sum+=offset_pratique(i-j);
+// 		}
+// 		offset_moy.push_back(round(sum/n_moy_offset));
+// 	}
+// }
 
 
 vector<std::complex<double>> supp_cp(vector<std::complex<double>> spc_c, vector<int> pos_max, int N, int Nsync, int n, int l)
@@ -130,8 +130,8 @@ int main()
 	vector<double> offset_moy;
 	std::vector<std::complex<double>> spc_c {1,1,0.56,0.56,0.46,0.656,0.65,0.45,0.46,0.46,1,1,1,1,0.45,0.32,0.84,0.1,0.4,0.23,0.45,0.45,1,1,1,1,0.45,0.32,0.84,0.1,0.4,0.23,0.45,0.45,1,1};
 	vector<int> pos_max_pratique = _corrDetectMax(spc_c,N,Nsync,n,l);
-	offset_pratique = calc_offset(pos_max_pratique, N, Nsync, n, l);
-	offset_moy=moyenne_offset(offset_pratique,N,Nsync,n_moy_offset);
+	//offset_pratique = calc_offset(pos_max_pratique, N, Nsync, n, l);
+	//offset_moy=moyenne_offset(offset_pratique,N,Nsync,n_moy_offset);
 	for(int i=0; i<pos_max_pratique.size();i++)
 	{
 		cout<< pos_max_pratique[i]<< endl;;
